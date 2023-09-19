@@ -12,6 +12,12 @@
 
 > This package is a copy of [mmfjx/hls.js](https://github.com/mmfjx/hls.js), because its [merge request](https://github.com/video-dev/hls.js/pull/5734) was not approved, and the original author of hls.js did not plan to continue implementing MPEG-TS of HEVC, look [here](https://github.com/video-dev/hls.js/issues/4943#issuecomment-1577457737). But I desperately needed such functionality, so I forked the project and copied their code to implement it. Many thanks to the original authors of hls.js and [@mmfjx](https://github.com/mmfjx).
 
+## Latest Install
+
+```sh
+npm install --save @tianfeng98/hls.js
+```
+
 HLS.js is a JavaScript library that implements an [HTTP Live Streaming] client.
 It relies on [HTML5 video][] and [MediaSource Extensions][] for playback.
 

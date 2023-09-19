@@ -35,6 +35,7 @@ export interface DemuxedTrack {
   type: string;
   id: number;
   pid: number;
+  segmentVideoCodec?: string;
   inputTimeScale: number;
   sequenceNumber: number;
   samples:
@@ -74,6 +75,8 @@ export interface DemuxedVideoTrackBase extends DemuxedTrack {
   audFound?: boolean;
   pps?: Uint8Array[];
   sps?: Uint8Array[];
+  vps?: Uint8Array[];
+  details?: any;
   naluState?: number;
   segmentCodec?: string;
   manifestCodec?: string;

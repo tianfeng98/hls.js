@@ -13,6 +13,7 @@ import * as ADTS from './audio/adts';
 import * as MpegAudio from './audio/mpegaudio';
 import * as AC3 from './audio/ac3-demuxer';
 import AvcVideoParser from './video/avc-video-parser';
+import HevcVideoParser from './video/hevc-video-parser';
 import SampleAesDecrypter from './sample-aes';
 import { Events } from '../events';
 import { appendUint8Array, RemuxerTrackIdConfig } from '../utils/mp4-tools';
@@ -75,6 +76,7 @@ class TSDemuxer implements Demuxer {
   private aacOverFlow: AudioFrame | null = null;
   private remainderData: Uint8Array | null = null;
   private videoParser: AvcVideoParser;
+  private hevcVideoParser: HevcVideoParser;
 
   constructor(
     observer: HlsEventEmitter,
@@ -85,6 +87,7 @@ class TSDemuxer implements Demuxer {
     this.config = config;
     this.typeSupported = typeSupported;
     this.videoParser = new AvcVideoParser();
+    this.hevcVideoParser = new HevcVideoParser();
   }
 
   static probe(data: Uint8Array) {
@@ -158,6 +161,7 @@ class TSDemuxer implements Demuxer {
       type,
       id: RemuxerTrackIdConfig[type],
       pid: -1,
+      segmentVideoCodec: '',
       inputTimeScale: 90000,
       sequenceNumber: 0,
       samples: [],
@@ -211,6 +215,21 @@ class TSDemuxer implements Demuxer {
     }
     this.aacOverFlow = null;
     this.remainderData = null;
+  }
+
+  public parseVideoAVCPES(
+    track: DemuxedVideoTrack,
+    textTrack: DemuxedUserdataTrack,
+    pes: PES,
+    last: boolean,
+    duration: number,
+  ) {
+    if (track.segmentCodec === 'avc') {
+      this.videoParser.parseAVCPES(track, textTrack, pes, last, duration);
+    }
+    if (track.segmentCodec === 'hevc') {
+      this.hevcVideoParser.parseAVCPES(track, textTrack, pes, last, duration);
+    }
   }
 
   public demux(
@@ -290,7 +309,7 @@ class TSDemuxer implements Demuxer {
           case videoPid:
             if (stt) {
               if (videoData && (pes = parsePES(videoData))) {
-                this.videoParser.parseAVCPES(
+                this.parseVideoAVCPES(
                   videoTrack,
                   textTrack,
                   pes,
@@ -873,7 +892,10 @@ function parsePMT(
         logger.warn('Unsupported EC-3 in M2TS found');
         break;
       case 0x24:
-        logger.warn('Unsupported HEVC in M2TS found');
+        if (result.videoPid === -1) {
+          result.videoPid = pid;
+          result.segmentVideoCodec = 'hevc';
+        }
         break;
 
       default:

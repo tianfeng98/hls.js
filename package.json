@@ -1,15 +1,16 @@
 {
-  "name": "hls.js",
+  "version": "1.0.0",
+  "name": "@tianfeng98/hls.js",
   "license": "Apache-2.0",
-  "description": "JavaScript HLS client using MediaSourceExtension",
-  "homepage": "https://github.com/video-dev/hls.js",
-  "authors": "Guillaume du Pontavice <g.du.pontavice@gmail.com>",
+  "description": "HLS.js is a JavaScript library that supports playing MPEG-TS and HEVC encoded HLS streams in browsers with support for MSE.",
+  "homepage": "https://github.com/tianfeng98/hls.js",
+  "authors": "tianfeng98 <linktodream@163.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/video-dev/hls.js"
+    "url": "https://github.com/tianfeng98/hls.js"
   },
   "bugs": {
-    "url": "https://github.com/video-dev/hls.js/issues"
+    "url": "https://github.com/tianfeng98/hls.js/issues"
   },
   "main": "./dist/hls.js",
   "module": "./dist/hls.mjs",
@@ -30,6 +31,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "keywords": [
+    "hls",
+    "hevc",
+    "h265"
+  ],
   "scripts": {
     "build": "rollup --config && npm run build:types",
     "build:ci": "rollup --config && tsc --build tsconfig-lib.json && api-extractor run && es-check",

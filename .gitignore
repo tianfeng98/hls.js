@@ -45,3 +45,5 @@ _ReSharper*/
 
 # VSCode custom workspace settings
 .vscode/settings.json
+
+.npmrc

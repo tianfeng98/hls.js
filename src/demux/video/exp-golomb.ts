@@ -356,6 +356,10 @@ class ExpGolomb {
     // return slice_type
     return this.readUEG();
   }
+
+  destroy() {
+    this.data = null as any;
+  }
 }
 
 export default ExpGolomb;

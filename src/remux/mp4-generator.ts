@@ -3,6 +3,7 @@
  */
 
 import { appendUint8Array } from '../utils/mp4-tools';
+import { HEVCDecoderConfigurationRecord } from './hevc-helper';
 
 type HdlrTypes = {
   video: Uint8Array;
@@ -28,6 +29,10 @@ class MP4 {
     MP4.types = {
       avc1: [], // codingname
       avcC: [],
+      hvc1: [],
+      hvcC: [],
+      av01: [],
+      av1C: [],
       btrt: [],
       dinf: [],
       dref: [],
@@ -736,6 +741,133 @@ class MP4 {
       ),
     );
   }
+  static hvc1(track) {
+    let vps: Uint8Array = new Uint8Array();
+    let sps: Uint8Array = new Uint8Array();
+    let pps: Uint8Array = new Uint8Array();
+    let i;
+    let metaData;
+    const width = track.width,
+      height = track.height;
+
+    const data = new Uint8Array([
+      0x00,
+      0x00,
+      0x00,
+      0x00, // reserved(4)
+      0x00,
+      0x00,
+      0x00,
+      0x01, // reserved(2) + data_reference_index(2)
+      0x00,
+      0x00,
+      0x00,
+      0x00, // pre_defined(2) + reserved(2)
+      0x00,
+      0x00,
+      0x00,
+      0x00, // pre_defined: 3 * 4 bytes
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      (width >>> 8) & 0xff, // width: 2 bytes
+      width & 0xff,
+      (height >>> 8) & 0xff, // height: 2 bytes
+      height & 0xff,
+      0x00,
+      0x48,
+      0x00,
+      0x00, // horizresolution: 4 bytes
+      0x00,
+      0x48,
+      0x00,
+      0x00, // vertresolution: 4 bytes
+      0x00,
+      0x00,
+      0x00,
+      0x00, // reserved: 4 bytes
+      0x00,
+      0x01, // frame_count
+      0x0a, // strlen
+      0x78,
+      0x71,
+      0x71,
+      0x2f, // compressorname: 32 bytes
+      0x66,
+      0x6c,
+      0x76,
+      0x2e,
+      0x6a,
+      0x73,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x18, // depth
+      0xff,
+      0xff, // pre_defined = -1
+    ]);
+
+    for (i = 0; i < track.vps.length; i++) {
+      metaData = track.vps[i];
+      const mergedArray = new Uint8Array(vps.length + metaData.length);
+      mergedArray.set(vps);
+      mergedArray.set(metaData, vps.length);
+      vps = mergedArray;
+    }
+    // assemble the SPSs
+
+    for (i = 0; i < track.sps.length; i++) {
+      metaData = track.sps[i];
+      const mergedArray = new Uint8Array(sps.length + metaData.length);
+      mergedArray.set(sps);
+      mergedArray.set(metaData, sps.length);
+      sps = mergedArray;
+    }
+
+    // assemble the PPSs
+    for (i = 0; i < track.pps.length; i++) {
+      metaData = track.pps[i];
+      const mergedArray = new Uint8Array(pps.length + metaData.length);
+      mergedArray.set(pps);
+      mergedArray.set(metaData, pps.length);
+      pps = mergedArray;
+    }
+    const hvcc = new HEVCDecoderConfigurationRecord(
+      vps,
+      sps,
+      pps,
+      track.details,
+    );
+    return MP4.box(
+      MP4.types.hvc1,
+      data,
+      MP4.box(MP4.types.hvcC, hvcc.getData()),
+    );
+  }
 
   static esds(track) {
     const configlen = track.config.length;
@@ -839,6 +971,8 @@ class MP4 {
         return MP4.box(MP4.types.stsd, MP4.STSD, MP4.ac3(track));
       }
       return MP4.box(MP4.types.stsd, MP4.STSD, MP4.mp4a(track));
+    } else if (track.type === 'video' && track.codec.startsWith('hvc1')) {
+      return MP4.box(MP4.types.stsd, MP4.STSD, MP4.hvc1(track));
     } else {
       return MP4.box(MP4.types.stsd, MP4.STSD, MP4.avc1(track));
     }

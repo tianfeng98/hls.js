@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "@tianfeng98/hls.js",
   "license": "Apache-2.0",
   "description": "HLS.js is a JavaScript library that supports playing MPEG-TS and HEVC encoded HLS streams in browsers with support for MSE.",

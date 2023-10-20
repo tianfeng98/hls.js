@@ -85,6 +85,8 @@ export class AttrList {
     // (undocumented)
     bool(attrName: string): boolean;
     // (undocumented)
+    get clientAttrs(): string[];
+    // (undocumented)
     decimalFloatingPoint(attrName: string): number;
     // (undocumented)
     decimalInteger(attrName: string): number;
@@ -270,11 +272,11 @@ export class BaseSegment {
     // (undocumented)
     readonly baseurl: string;
     // (undocumented)
-    get byteRange(): number[];
+    get byteRange(): [number, number] | [];
     // (undocumented)
-    get byteRangeEndOffset(): number;
+    get byteRangeEndOffset(): number | undefined;
     // (undocumented)
-    get byteRangeStartOffset(): number;
+    get byteRangeStartOffset(): number | undefined;
     // (undocumented)
     elementaryStreams: ElementaryStreams;
     // (undocumented)
@@ -2005,6 +2007,8 @@ export class Level {
     // (undocumented)
     addFallback(data: LevelParsed): void;
     // (undocumented)
+    addGroupId(type: string, groupId: string | undefined, fallbackIndex: number): void;
+    // (undocumented)
     get attrs(): LevelAttributes;
     // (undocumented)
     readonly _attrs: LevelAttributes[];
@@ -2014,6 +2018,8 @@ export class Level {
     get audioGroupId(): string | undefined;
     // (undocumented)
     audioGroupIds?: (string | undefined)[];
+    // (undocumented)
+    get audioGroups(): (string | undefined)[] | undefined;
     // (undocumented)
     get averageBitrate(): number;
     // (undocumented)
@@ -2049,6 +2055,8 @@ export class Level {
     realBitrate: number;
     // (undocumented)
     get score(): number;
+    // (undocumented)
+    get subtitleGroups(): (string | undefined)[] | undefined;
     // (undocumented)
     supportedPromise?: Promise<MediaDecodingInfo>;
     // (undocumented)
@@ -2737,6 +2745,10 @@ export interface MediaPlaylist extends Omit<LevelParsed, 'attrs'> {
     // (undocumented)
     autoselect: boolean;
     // (undocumented)
+    channels?: string;
+    // (undocumented)
+    characteristics?: string;
+    // (undocumented)
     default: boolean;
     // (undocumented)
     forced: boolean;
@@ -3049,8 +3061,6 @@ export class SubtitleStreamController extends BaseStreamController implements Ne
     protected getMaxBufferLength(mainBufferLength?: number): number;
     // (undocumented)
     _handleFragmentLoadComplete(fragLoadedData: FragLoadedData): void;
-    // (undocumented)
-    protected levels: Array<Level>;
     // (undocumented)
     protected loadFragment(frag: Fragment, level: Level, targetBufferTime: number): void;
     // (undocumented)

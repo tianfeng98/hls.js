@@ -317,20 +317,32 @@ export default class M3U8Parser {
             'CHANNELS',
           ]);
         }
+        const lang = attrs.LANGUAGE;
+        const channels = attrs.CHANNELS;
+        const characteristics = attrs.CHARACTERISTICS;
+        const instreamId = attrs['INSTREAM-ID'];
         const media: MediaPlaylist = {
           attrs,
           bitrate: 0,
           id: id++,
           groupId: attrs['GROUP-ID'] || '',
-          instreamId: attrs['INSTREAM-ID'],
-          name: attrs.NAME || attrs.LANGUAGE || '',
+          name: attrs.NAME || lang || '',
           type,
           default: attrs.bool('DEFAULT'),
           autoselect: attrs.bool('AUTOSELECT'),
           forced: attrs.bool('FORCED'),
-          lang: attrs.LANGUAGE,
+          lang: lang,
           url: attrs.URI ? M3U8Parser.resolve(attrs.URI, baseurl) : '',
         };
+        if (channels) {
+          media.channels = channels;
+        }
+        if (characteristics) {
+          media.characteristics = characteristics;
+        }
+        if (instreamId) {
+          media.instreamId = instreamId;
+        }
 
         if (groups?.length) {
           // If there are audio or text groups signalled in the manifest, let's look for a matching codec string for this track
@@ -371,6 +383,7 @@ export default class M3U8Parser {
     let levelkeys: { [key: string]: LevelKey } | undefined;
     let firstPdtIndex = -1;
     let createNextFrag = false;
+    let nextByteRange: string | null = null;
 
     LEVEL_PLAYLIST_REGEX_FAST.lastIndex = 0;
     level.m3u8 = string;
@@ -391,6 +404,10 @@ export default class M3U8Parser {
           frag.initSegment = currentInitSegment;
           frag.rawProgramDateTime = currentInitSegment.rawProgramDateTime;
           currentInitSegment.rawProgramDateTime = null;
+          if (nextByteRange) {
+            frag.setByteRange(nextByteRange);
+            nextByteRange = null;
+          }
         }
       }
 
@@ -621,6 +638,14 @@ export default class M3U8Parser {
               }
             } else {
               // Initial segment tag is before segment duration tag
+              // Handle case where EXT-X-MAP is declared after EXT-X-BYTERANGE
+              const end = frag.byteRangeEndOffset;
+              if (end) {
+                const start = frag.byteRangeStartOffset as number;
+                nextByteRange = `${end - start}@${start}`;
+              } else {
+                nextByteRange = null;
+              }
               setInitSegment(frag, mapAttrs, id, levelkeys);
               currentInitSegment = frag;
               createNextFrag = true;
